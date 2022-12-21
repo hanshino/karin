@@ -1,13 +1,13 @@
 <?php
 
-namespace Tests\Feature\Http\Controllers;
+namespace Tests\Feature\Http\Controllers\Line;
 
 use App\Models\PlatformUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
-class LineUserControllerTest extends TestCase
+class UserControllerTest extends TestCase
 {
     use RefreshDatabase;
     use WithFaker;
@@ -23,7 +23,7 @@ class LineUserControllerTest extends TestCase
             ->useLineUser()
             ->make();
 
-        $response = $this->json('POST', '/api/line-user', [
+        $response = $this->json('POST', '/api/line/user', [
             'userId' => $lineUser->platform_id,
             'displayName' => $lineUser->display_name,
             'pictureUrl' => $lineUser->picture_url,
@@ -58,7 +58,7 @@ class LineUserControllerTest extends TestCase
      */
     public function test_store_bad_request()
     {
-        $response = $this->json('POST', '/api/line-user', []);
+        $response = $this->json('POST', '/api/line/user', []);
 
         $response->assertStatus(422);
         $this->assertArrayHasKey('userId', $response->json('errors'));
@@ -76,7 +76,7 @@ class LineUserControllerTest extends TestCase
             ->useLineUser()
             ->create();
 
-        $response = $this->json('POST', '/api/line-user', [
+        $response = $this->json('POST', '/api/line/user', [
             'userId' => $lineUser->platform_id,
             'displayName' => $lineUser->display_name,
             'pictureUrl' => $lineUser->picture_url,
@@ -86,5 +86,51 @@ class LineUserControllerTest extends TestCase
         $response->assertStatus(422);
         $this->assertArrayHasKey('userId', $response->json('errors'));
         $this->assertEquals('The user id has already been taken.', $response->json('errors.userId.0'));
+    }
+
+    /**
+     * 測試成功取得平台用戶
+     * @return void
+     * @group line-user
+     */
+    public function test_show_success()
+    {
+        $lineUser = PlatformUser::factory()
+            ->useLineUser()
+            ->create();
+
+        $response = $this->json('GET', '/api/line/user/' . $lineUser->platform_id);
+
+        $response->assertStatus(200);
+        $this->assertEquals($lineUser->platform_id, $response->json('data.userId'));
+        $this->assertEquals($lineUser->display_name, $response->json('data.displayName'));
+        $this->assertEquals($lineUser->picture_url, $response->json('data.pictureUrl'));
+        $this->assertEquals($lineUser->status_message, $response->json('data.statusMessage'));
+    }
+
+    /**
+     * 測試取得平台用戶時，平台用戶不存在的情況
+     * @return void
+     * @group line-user
+     */
+    public function test_show_not_found()
+    {
+        $lineUser = PlatformUser::factory()
+            ->useLineUser()
+            ->make();
+
+        $response = $this->json('GET', '/api/line/user/' . $lineUser->platform_id);
+        $response->assertStatus(404);
+    }
+
+    /**
+     * 測試取得平台用戶時，平台用戶 ID 格式錯誤的情況
+     * @return void
+     * @group line-user
+     */
+    public function test_show_invalid_id()
+    {
+        $response = $this->json('GET', '/api/line/user/' . $this->faker->uuid);
+        $response->assertStatus(422);
     }
 }

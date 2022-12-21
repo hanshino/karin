@@ -1,17 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Line;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Line\StoreUserRequest;
-use App\Http\Resources\LineUserResource;
+use App\Http\Resources\Line\UserResource;
 use App\Models\PlatformUser;
 use App\Models\User;
-use Exception;
+use App\Rules\LineId;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Throwable;
 
-class LineUserController extends Controller
+class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -58,7 +60,7 @@ class LineUserController extends Controller
             throw $throwable;
         }
 
-        return (new LineUserResource($lineUser))
+        return (new UserResource($lineUser))
             ->response()
             ->setStatusCode(201);
     }
@@ -66,12 +68,27 @@ class LineUserController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  string  $userId
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(string $userId)
     {
-        //
+        $validator = Validator::make(['userId' => $userId], [
+            'userId' => [LineId::user()],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $lineUser = PlatformUser::where('platform', 'line')
+            ->where('platform_id', $userId)
+            ->firstOrFail();
+
+        return new UserResource($lineUser);
     }
 
     /**

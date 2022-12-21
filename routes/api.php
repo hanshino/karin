@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\LineUserController;
+use App\Http\Controllers\Line\UserController as LineUserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,7 +19,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::apiResources(
-    ['line-user' => LineUserController::class],
-    ['only' => ['store']]
-);
+Route::name('line.')
+    ->prefix('/line')
+    ->group(function () {
+        Route::apiResource('user', LineUserController::class)->only([
+            'store',
+            'show'
+        ]);
+    });
