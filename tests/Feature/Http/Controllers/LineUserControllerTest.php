@@ -12,6 +12,11 @@ class LineUserControllerTest extends TestCase
     use RefreshDatabase;
     use WithFaker;
 
+    /**
+     * 測試成功新增平台用戶
+     * @return void
+     * @group line-user
+     */
     public function test_store_success()
     {
         $lineUser = PlatformUser::factory()
@@ -44,5 +49,42 @@ class LineUserControllerTest extends TestCase
             'name' => $lineUser->display_name,
             'avatar' => $lineUser->picture_url,
         ]);
+    }
+
+    /**
+     * 測試新增平台用戶時，參數錯誤的情況
+     * @return void
+     * @group line-user
+     */
+    public function test_store_bad_request()
+    {
+        $response = $this->json('POST', '/api/line-user', []);
+
+        $response->assertStatus(422);
+        $this->assertArrayHasKey('userId', $response->json('errors'));
+        $this->assertArrayHasKey('displayName', $response->json('errors'));
+    }
+
+    /**
+     * 測試新增平台用戶時，平台用戶已存在的情況
+     * @return void
+     * @group line-user
+     */
+    public function test_store_duplicate()
+    {
+        $lineUser = PlatformUser::factory()
+            ->useLineUser()
+            ->create();
+
+        $response = $this->json('POST', '/api/line-user', [
+            'userId' => $lineUser->platform_id,
+            'displayName' => $lineUser->display_name,
+            'pictureUrl' => $lineUser->picture_url,
+            'statusMessage' => $lineUser->status_message,
+        ]);
+
+        $response->assertStatus(422);
+        $this->assertArrayHasKey('userId', $response->json('errors'));
+        $this->assertEquals('The user id has already been taken.', $response->json('errors.userId.0'));
     }
 }

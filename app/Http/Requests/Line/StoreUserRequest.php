@@ -4,6 +4,7 @@ namespace App\Http\Requests\Line;
 
 use App\Facade\Bouncer;
 use App\Models\PlatformUser;
+use App\Rules\LineId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -30,12 +31,13 @@ class StoreUserRequest extends FormRequest
             'userId' => [
                 'required',
                 'string',
-                'max:255',
-                Rule::unique('platform_users', 'platform_id')->where('platform', 'line')
+                'max:33',
+                Rule::unique('platform_users', 'platform_id')->where('platform', 'line'),
+                LineId::user(),
             ],
             'displayName' => ['required', 'string', 'max:40'],
-            'pictureUrl' => ['required', 'string', 'max:255'],
-            'statusMessage' => ['required', 'string', 'max:255'],
+            'pictureUrl' => ['string', 'max:255'],
+            'statusMessage' => ['string', 'max:255'],
         ];
     }
 }

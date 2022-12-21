@@ -58,7 +58,9 @@ class LineUserController extends Controller
             throw $throwable;
         }
 
-        return (new LineUserResource($lineUser))->response()->setStatusCode(201);
+        return (new LineUserResource($lineUser))
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
