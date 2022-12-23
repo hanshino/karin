@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Line;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Line\StoreUserRequest;
+use App\Http\Requests\Line\UpdateUserRequest;
 use App\Http\Resources\Line\UserResource;
 use App\Models\PlatformUser;
 use App\Models\User;
 use App\Rules\LineId;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
@@ -95,12 +95,28 @@ class UserController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param  string  $userId
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateUserRequest $request, string $userId)
     {
-        //
+        $attributes = $request->validated();
+
+        $lineUser = PlatformUser::where('platform', 'line')
+            ->where('platform_id', $userId)
+            ->firstOrFail();
+
+        $lineUser->fill([
+            'display_name' => $attributes['displayName'],
+            'picture_url' => $attributes['pictureUrl'],
+            'status_message' => $attributes['statusMessage'],
+        ]);
+
+        if ($lineUser->isDirty()) {
+            $lineUser->save();
+        }
+
+        return new UserResource($lineUser);
     }
 
     /**
