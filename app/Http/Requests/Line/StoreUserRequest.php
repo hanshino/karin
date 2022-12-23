@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests\Line;
 
-use App\Facade\Bouncer;
-use App\Models\PlatformUser;
 use App\Rules\LineId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

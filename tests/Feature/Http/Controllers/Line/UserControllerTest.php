@@ -14,6 +14,7 @@ class UserControllerTest extends TestCase
 
     /**
      * 測試成功新增平台用戶
+     *
      * @return void
      * @group line-user
      */
@@ -53,6 +54,7 @@ class UserControllerTest extends TestCase
 
     /**
      * 測試新增平台用戶時，參數錯誤的情況
+     *
      * @return void
      * @group line-user
      */
@@ -67,6 +69,7 @@ class UserControllerTest extends TestCase
 
     /**
      * 測試新增平台用戶時，平台用戶已存在的情況
+     *
      * @return void
      * @group line-user
      */
@@ -90,6 +93,7 @@ class UserControllerTest extends TestCase
 
     /**
      * 測試成功取得平台用戶
+     *
      * @return void
      * @group line-user
      */
@@ -110,6 +114,7 @@ class UserControllerTest extends TestCase
 
     /**
      * 測試取得平台用戶時，平台用戶不存在的情況
+     *
      * @return void
      * @group line-user
      */
@@ -125,6 +130,7 @@ class UserControllerTest extends TestCase
 
     /**
      * 測試取得平台用戶時，平台用戶 ID 格式錯誤的情況
+     *
      * @return void
      * @group line-user
      */
@@ -132,5 +138,38 @@ class UserControllerTest extends TestCase
     {
         $response = $this->json('GET', '/api/line/user/' . $this->faker->uuid);
         $response->assertStatus(422);
+    }
+
+    /**
+     * 測試成功更新平台用戶
+     *
+     * @return void
+     * @group line-user
+     */
+    public function test_update_success()
+    {
+        $lineUser = PlatformUser::factory()
+            ->useLineUser()
+            ->create();
+
+        $response = $this->json('PUT', '/api/line/user/' . $lineUser->platform_id, [
+            'displayName' => $lineUser->display_name,
+            'pictureUrl' => $lineUser->picture_url,
+            'statusMessage' => $lineUser->status_message,
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertEquals($lineUser->platform_id, $response->json('data.userId'));
+        $this->assertEquals($lineUser->display_name, $response->json('data.displayName'));
+        $this->assertEquals($lineUser->picture_url, $response->json('data.pictureUrl'));
+        $this->assertEquals($lineUser->status_message, $response->json('data.statusMessage'));
+
+        $this->assertDatabaseHas('platform_users', [
+            'platform' => 'line',
+            'platform_id' => $lineUser->platform_id,
+            'display_name' => $lineUser->display_name,
+            'picture_url' => $lineUser->picture_url,
+            'status_message' => $lineUser->status_message,
+        ]);
     }
 }

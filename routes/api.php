@@ -24,6 +24,6 @@ Route::name('line.')
     ->group(function () {
         Route::apiResource('user', LineUserController::class)->only([
             'store',
-            'show'
+            'show',
         ]);
     });
